@@ -12,118 +12,71 @@ n = len(edges)  # 边的数量
 total = 0
 print("total edges: ", n)
 
+# 三个旋转方向的单位
+rotate_unit = [
+    (1, 0, 0),
+    (0, 1, 0),
+    (0, 0, 1)
+]
 
-def dye_x(res0, index, p, cube, mul=1):
-    global total
-    p0 = p
-    c = cp(cube)
-    res = cp(res0)
+# 旋转方向
+label = ['x', 'y', 'z']
+
+
+def dyeing(res0, p0, rotate, index, cube, mul=1):
+    """
+    Args:
+        res0: 结果
+        p0: 当前节点
+        rotate: 旋转方向，取值0,1,2
+    """
+    p = p0
     e = edges[index]
-    tmp = p[0]+e*mul
+    tmp = p[rotate]+e*mul
     if tmp < 0 or tmp > 2:
-        return False
+        return
 
-    p = (p[0]+mul, p[1], p[2])
+    c = cp(cube)
+    unit_mul = 1 if mul > 0 else -1
+    unit = rotate_unit[rotate]
+    p = tuple(x+y*unit_mul for x, y in zip(p, unit))
     if c[p] == 1:
         return False
 
     c[p] = 1
+    new_point = [p]
     if e == 2:
-        p = (p[0]+mul, p[1], p[2])
+        p = tuple(x+y*unit_mul for x, y in zip(p, unit))
         if c[p] == 1:
             return False
         c[p] = 1
+        new_point.append(p)
 
-    if index == n-1:
-        total += 1
-        res.append('x%s%d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
-        print('*'*40, total)
-        print("\n".join(res))
-        return True
-
-    #print('%02d: %d x%s' % (index, e, '+' if mul > 0 else '-'))
-    res.append('x%s%d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
-    add(res, index+1, p, c)
-
-
-def dye_y(res0, index, p, cube, mul=1):
     global total
-    p0 = p
-    c = cp(cube)
     res = cp(res0)
-    e = edges[index]
-    tmp = p[1]+e*mul
-    if tmp < 0 or tmp > 2:
-        return
-
-    p = (p[0], p[1]+mul, p[2])
-    if c[p] == 1:
-        return False
-
-    c[p] = 1
-    if e == 2:
-        p = (p[0], p[1]+mul, p[2])
-        if c[p] == 1:
-            return False
-        c[p] = 1
-
     if index == n-1:
         total += 1
-        res.append('y%s%d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
+        res.append('%s -> %s%s%d -> %s' % (p0, label[rotate], '+' if mul > 0 else '-', edges[index], new_point))
         print('*'*40, total)
         print("\n".join(res))
         return
 
-    #print('%02d: %d y%s' % (index, e, '+' if mul > 0 else '-'))
-    res.append('y%s%d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
-    add(res, index+1, p, c)
-
-
-def dye_z(res0, index, p, cube, mul=1):
-    global total
-    p0 = p
-    c = cp(cube)
-    res = cp(res0)
-    e = edges[index]
-    tmp = p[2]+e*mul
-    if tmp < 0 or tmp > 2:
-        return
-
-    p = (p[0], p[1], p[2]+mul)
-    if c[p] == 1:
-        return False
-
-    c[p] = 1
-    if e == 2:
-        p = (p[0], p[1], p[2]+mul)
-        if c[p] == 1:
-            return False
-        c[p] = 1
-
-    if index == n-1:
-        total += 1
-        res.append('z%s: %d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
-        print('*'*40, total)
-        print("\n".join(res))
-        return
-
-    #print('%02d: %d z%s' % (index, e, '+' if mul > 0 else '-'))
-    res.append('z%s%d, %s' % ('+' if mul > 0 else '-', edges[index], p0))
+    res.append('%s -> %s%s%d -> %s' % (p0, label[rotate], '+' if mul > 0 else '-', edges[index], new_point))
     add(res, index+1, p, c)
 
 
 def add(res, index, p, cube):
-    dye_x(res, index, p, cube, 1)
-    dye_x(res, index, p, cube, -1)
-    dye_y(res, index, p, cube, 1)
-    dye_y(res, index, p, cube, -1)
-    dye_z(res, index, p, cube, 1)
-    dye_z(res, index, p, cube, -1)
+    # def dyeing(res0, p0, rotate, index, cube, mul=1):
+    dyeing(res, p, 0, index, cube, 1)
+    dyeing(res, p, 0, index, cube, -1)
+    dyeing(res, p, 1, index, cube, 1)
+    dyeing(res, p, 1, index, cube, -1)
+    dyeing(res, p, 2, index, cube, 1)
+    dyeing(res, p, 2, index, cube, -1)
 
 
-cube = np.zeros((3,3,3), dtype=np.int)  # 魔方矩阵初始化
-p = (0,0,0)
+cube = np.zeros((3, 3, 3), dtype=np.int)  # 魔方矩阵初始化
+p = (0, 0, 0)
 cube[p] = 1
-res = []
-dye_z(res, 0, p, cube)
-cube[p] = 0
+# def dyeing(res0, p0, rotate, index, cube, mul=1):
+dyeing([], p, 2, 0, cube, 1)
